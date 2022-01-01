@@ -1,2 +1,20 @@
 # Load your data and print out a few lines. Perform operations to inspect data
 df=pd.read_csv('tmdb-movies.csv')
+
+
+DUBLICATES
+sum(df.duplicated())             #check for Duplicates
+df[df.duplicated(keep=False)]    #show Duplicates
+df.drop_duplicates(inplace=True) #drop Duplicates
+sum(df.duplicated())             #check one more time for duplicates
+
+MISSING VALUES
+  Nan and Zero are same for date frame: **https://datascience.stackexchange.com/questions/37878/difference-between-isna-and-isnull-in-pandas**
+  NA
+    dfnan = df[df.isna().any(1)] #show zero values if there is any per row(1) or row(axis=1)
+    or
+    df.isna().values.any()
+    df.dropna(inplace=True)
+  Zero
+    df.isnull().values.any()  #check if Zero values exsist
+    df[df.isnull().any(1)]    #show zero valuesif there is any per row(1)
