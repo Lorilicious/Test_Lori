@@ -1,0 +1,2 @@
+# Load your data and print out a few lines. Perform operations to inspect data
+df=pd.read_csv('tmdb-movies.csv')
