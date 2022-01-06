@@ -1,23 +1,78 @@
-# Load your data and print out a few lines. Perform operations to inspect data
-df=pd.read_csv('tmdb-movies.csv')
+Hello,
+
+I've the following dataFrame as an input:df_0 = pd.DataFrame({"year" : [1960, 1960, 1960, 1960, 1961, 1961, 1961, 1962, 1962, 1962,],
+                     "genre": ['Action', 'Crime', 'Action', 'Drama', 'Thriller', 'Thriller', 'Crime', 'Drama', 'Drama', 'Thriller'],
+                     "popularity": [1.99, 0.53, 1.81, 0.23, 3.86, 3.94, 0.21, 4.30, 5.60, 0.09] })
+figure 0:            year	genre	popularity
+0	    1960	Action	  1.99
+1	    1960	Crime	  0.53
+2	    1960	Action	  1.81
+3	    1960	Drama	  0.23
+4	    1961	Thriller      3.86
+5	    1961	Thriller      3.94
+6	    1961	Crime	  0.21
+7	    1962	Drama	  4.30
+8	    1962	Drama	  5.60
+9	    1962	Thriller      0.09
+I've created a new dataFrame df_1 by grouping by values like this:df_1 = df_0.groupby(['year','genre']).popularity.agg(['mean','max'])
+figure 1:		                    mean	max
+year	genre		
+1960	Action	    1.90	1.99
+                Crime	    0.53	0.53
+                Drama	    0.23	0.23
+1961	Crime	    0.21	0.21
+                Thriller        3.90   3.94
+1962	Drama	    4.95	5.60
+                Thriller        0.09   0.09
+As a result, we've got a similar dataFrame as the following:df_1 = pd.DataFrame({"year" : [1960, 1960, 1960, 1961, 1961, 1962, 1962,],
+                     "genre": ['Action', 'Crime', 'Drama', 'Crime', 'Thriller', 'Drama', 'Thriller'],
+                     "mean ": [1.90, 0.53, 0.23, 0.21, 3.90, 4.95, 0.09],
+                     "max"  : [1.99, 0.53, 0.23, 0.21, 3.94, 5.60, 0.09] }).set_index("year")
+And I'm struggling with the next steps.
+I would like to create the following dataFrame df_2 from df_1 (.groupby()) using only pandas functions (and no numpy or at the minimum):df_2 = pd.DataFrame({"year" : [1960, 1961],
+                     "genre": ['Action', 'Thriller'],
+                     "mean ": [0.64, 0.81],
+                     "max"  : [1.87, 2.61] })
+figure 2:	        genre        mean	max
+year			
+1960	Action	  1.90	1.99
+1961	Thriller      3.90	3.94
+1962	Drama	  4.95	5.60
+**This dataFrame df_2 collects the maximum values of each group.**
 
 
-DUBLICATES
-sum(df.duplicated())             #check for Duplicates
->>1                              #amount of dupicates as 1  
-df[df.duplicated(keep=False)]    #show Duplicates
+Any tips?
+Thank you for your support.
 
-df.drop_duplicates(inplace=True) #drop Duplicates
-sum(df.duplicated())             #check one more time for duplicates
+Mohamed Sahmoune, 14. Dez., 16:46, Bearbeitet
+The following lines seem to get the job done:df_2 = df_1.query('year in [1960, 1961] and genre in ["Action", "Thriller"]').reset_index()
+But when I try to replace with this version below, I get a error message saying UndefinedVariableError: name 'YEARS' is not defined:YEARS  = sorted(list(set(df_1.index.to_list())))
+GENRES = sorted(list(set(df_1.genre.to_list())))
+df_1.query('year in YEARS and genre in GENRES').reset_index()
+Any suggestion?
 
-MISSING VALUES
-  NAN and Zero are same for date frame: **https://datascience.stackexchange.com/questions/37878/difference-between-isna-and-isnull-in-pandas**
-  NA
-    df.isna().values.any()
-    dfnan = df[df.isna().any(1)] #show in dfnan zero values if there is any per row(1) or row(axis=1)
-    or
-    df.isna().values.any()
-    df.dropna(inplace=True)
-  Zero
-    df.isnull().values.any()  #check if Zero values exsist
-    df[df.isnull().any(1)]    #show zero valuesif there is any per row(1)
+Mohamed Sahmoune, 14. Dez., 18:27
+I realize the code do not answer the question. It filters the DT presupposing the answer, knowing in advance the sample with the maximum value. The orignal DT has several thousands of samples. Meaning, the filtering or the query needs to specify the fact we are interested only on the maximum value of each group of sample (grouped by year).
+
+Mohamed , 14. Dez., 18:44, Bearbeitet
+The following line code gets the job done:df_1.groupby(['year','genre']).max().reset_index().groupby(['genre']).max().reset_index().set_index('year')        genre	  mean	max
+year			
+1960	Action	  1.90	1.99
+1961	Crime	  0.53	0.53
+1962	Drama	  4.95	5.60
+1962	Thriller  3.90	3.94
+
+Eike, 15. Dez., 11:07
+Hi,
+I created a similar df like your with the release_year and genre as well as the voter score.
+to get the genres with the highest score by year I used:df_1.loc[df_1.groupby('release_year')['vote'].idxmax()]
+
+release_year	main_genre	vote
+1960	Drama	6.780000
+1961	Science Fiction	7.200000
+1962	Mystery	7.000000
+1963	Animation	6.700000
+1964	Thriller	6.600000
+1965	Animation	7.600000
+1966	Animation	7.500000
+
